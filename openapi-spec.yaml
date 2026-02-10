@@ -1,0 +1,367 @@
+openapi: "3.1.0"
+info:
+  title: Sieve IMPACT-X API
+  version: "1.0.0"
+  description: >
+    AI-powered startup due diligence by Sieve.
+    Screen startups across 7 IMPACT-X dimensions (Innovators, Market, Product, Advantage, Commerce, Traction, X-Factor)
+    and get quantified scores with meeting recommendations.
+
+servers:
+  - url: https://api.sieve.arceusxventures.com/api/v1/public
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: "API key starting with sk_live_. Get yours at https://sieve.arceusxventures.com/settings"
+
+  schemas:
+    ScreenRequest:
+      type: object
+      properties:
+        company_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: "Name of the company to screen"
+        website_url:
+          type: string
+          format: uri
+          description: "Company website URL"
+        pitch_deck_text:
+          type: string
+          description: "Extracted text content from a pitch deck"
+        description:
+          type: string
+          maxLength: 5000
+          description: "Brief description of the company"
+      required:
+        - company_name
+
+    ScreenResponse:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+          description: "Unique ID to track this analysis"
+        status:
+          type: string
+          description: "Current status (e.g., 'started')"
+        message:
+          type: string
+          description: "Human-readable status message"
+        estimated_time_seconds:
+          type: integer
+          description: "Estimated completion time in seconds"
+      required:
+        - analysis_id
+        - status
+        - message
+        - estimated_time_seconds
+
+    DimensionProgress:
+      type: object
+      properties:
+        name:
+          type: string
+          description: "Dimension key (innovators, market, product, advantage, commerce, traction, xfactor)"
+        label:
+          type: string
+          description: "Human-readable label (e.g., 'Innovators (Team)')"
+        score:
+          type: number
+          description: "Score achieved for this dimension"
+        max_score:
+          type: number
+          description: "Maximum possible score for this dimension"
+        duration_seconds:
+          type: number
+          description: "Seconds taken to analyze this dimension (only during live analysis)"
+      required:
+        - name
+        - label
+        - score
+        - max_score
+
+    DimensionsStatus:
+      type: object
+      properties:
+        completed:
+          type: array
+          items:
+            $ref: "#/components/schemas/DimensionProgress"
+          description: "Dimensions that have finished analysis"
+        in_progress:
+          type: array
+          items:
+            type: string
+          description: "Dimension names currently being analyzed"
+        total:
+          type: integer
+          description: "Total number of dimensions (always 7)"
+
+    AnalysisStatusResponse:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - not_started
+            - screening
+            - verifying
+            - complete
+            - failed
+          description: "Current analysis status"
+        progress_percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: "Overall progress as a percentage"
+        current_phase:
+          type: string
+          enum:
+            - not_started
+            - dimension_analysis
+            - cross_check
+            - complete
+          description: "Current processing phase"
+        dimensions:
+          $ref: "#/components/schemas/DimensionsStatus"
+        completed_at:
+          type: string
+          format: date-time
+          description: "Timestamp when analysis completed (null if still running)"
+      required:
+        - analysis_id
+        - status
+        - progress_percentage
+        - current_phase
+        - dimensions
+
+    AnalysisSummaryResponse:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+          format: uuid
+        company_name:
+          type: string
+          description: "Name of the screened company"
+        sieve_score:
+          type: object
+          description: "Score breakdown with total (0-140) and per-dimension scores (each 0-20)"
+        meeting_decision:
+          description: "Take Meeting, Pass, or Need More Info with reasoning"
+        executive_summary:
+          description: "AI-generated executive summary of the analysis"
+        impact_x:
+          type: object
+          description: "IMPACT-X founder/company profile assessment"
+        key_strengths:
+          type: array
+          items:
+            type: object
+          description: "Top strengths identified during analysis"
+        key_concerns:
+          type: array
+          items:
+            type: object
+          description: "Top concerns and risks identified during analysis"
+        completed_at:
+          type: string
+          format: date-time
+          description: "Timestamp when analysis completed"
+      required:
+        - analysis_id
+        - company_name
+
+    UsageResponse:
+      type: object
+      properties:
+        tier:
+          type: string
+          description: "API tier (free, pro)"
+        screens_used_this_month:
+          type: integer
+          description: "Number of screens used in the current billing period"
+        screens_limit:
+          type: integer
+          nullable: true
+          description: "Monthly screen limit. null means unlimited (pro tier)"
+        period_start:
+          type: string
+          format: date-time
+          description: "Start of the current billing period"
+        period_end:
+          type: string
+          format: date-time
+          description: "End of the current billing period"
+      required:
+        - tier
+        - screens_used_this_month
+        - period_start
+        - period_end
+
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: "Error message"
+
+    RateLimitError:
+      type: object
+      properties:
+        detail:
+          type: object
+          properties:
+            error:
+              type: string
+            used:
+              type: integer
+            limit:
+              type: integer
+            tier:
+              type: string
+            message:
+              type: string
+            upgrade_url:
+              type: string
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /screen:
+    post:
+      operationId: runScreen
+      summary: "Run a Sieve Quick Screen on a startup"
+      description: >
+        Creates a deal, optionally stores pitch deck text, and starts the Quick Screen analysis.
+        Returns an analysis_id to poll for status and results. Takes 2-3 minutes to complete.
+        Rate limited per API key tier (free: 5/month, pro: unlimited).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreenRequest"
+      responses:
+        "201":
+          description: "Screen started successfully"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreenResponse"
+        "401":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: "Monthly screen limit reached"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitError"
+
+  /analysis/{analysis_id}/status:
+    get:
+      operationId: getAnalysisStatus
+      summary: "Check analysis progress with per-dimension scores"
+      description: >
+        Returns real-time progress including which dimensions have completed,
+        their individual scores, and which are still in progress.
+        Poll this endpoint every 15-30 seconds until status is 'complete'.
+      parameters:
+        - name: analysis_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "The analysis_id returned from the /screen endpoint"
+      responses:
+        "200":
+          description: "Analysis status with dimension progress"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisStatusResponse"
+        "401":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Analysis not found or does not belong to your organization"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /analysis/{analysis_id}/summary:
+    get:
+      operationId: getAnalysisSummary
+      summary: "Get the full Sieve Score results for a completed analysis"
+      description: >
+        Returns the complete analysis results including the Sieve Score (0-140),
+        meeting decision (Take Meeting / Pass / Need More Info), executive summary,
+        IMPACT-X profile, key strengths, and key concerns. Only available after status is 'complete'.
+      parameters:
+        - name: analysis_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: "The analysis_id returned from the /screen endpoint"
+      responses:
+        "200":
+          description: "Full analysis summary with scores and recommendations"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisSummaryResponse"
+        "401":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: "Analysis not found or not yet complete"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /usage:
+    get:
+      operationId: getUsage
+      summary: "Check API usage for the current billing month"
+      description: >
+        Returns the number of screens used this month, the monthly limit for your tier,
+        and the current billing period dates. Use this to check remaining quota before running screens.
+      responses:
+        "200":
+          description: "Current month API usage"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
