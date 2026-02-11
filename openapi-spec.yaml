@@ -16,7 +16,7 @@ components:
       type: apiKey
       in: header
       name: X-API-Key
-      description: "API key starting with sk_live_. Get yours at https://sieve.arceusxventures.com/settings"
+      description: "API key starting with sk_live_. Get yours at https://app.sieve.arceusxventures.com/settings"
 
   schemas:
     ScreenRequest:

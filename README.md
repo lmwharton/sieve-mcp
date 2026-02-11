@@ -63,7 +63,7 @@ Add to your MCP settings:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `SIEVE_API_KEY` | Yes | — | Your Sieve API key. Get one at [sieve.arceusxventures.com/settings](https://sieve.arceusxventures.com/settings) |
+| `SIEVE_API_KEY` | Yes | — | Your Sieve API key. Get one at [app.sieve.arceusxventures.com/settings](https://app.sieve.arceusxventures.com/settings) |
 | `SIEVE_API_URL` | No | `https://api.sieve.arceusxventures.com` | API base URL (override for self-hosted) |
 
 ## Available Tools

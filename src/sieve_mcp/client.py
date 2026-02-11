@@ -29,7 +29,7 @@ async def _request(
         return {
             "error": "Missing API key",
             "detail": "Set the SIEVE_API_KEY environment variable. "
-            "Get your key at https://sieve.arceusxventures.com/settings",
+            "Get your key at https://app.sieve.arceusxventures.com/settings",
         }
 
     url = f"{SIEVE_API_URL.rstrip('/')}{_BASE}{path}"
