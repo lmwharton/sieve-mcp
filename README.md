@@ -5,7 +5,9 @@
 
 # Sieve MCP Server
 
-AI-powered startup due diligence, delivered as an [MCP](https://modelcontextprotocol.io) server. Sieve scores startups across 7 IMPACT-X dimensions (Innovators, Market, Product, Advantage, Commerce, Traction, X-Factor) and recommends whether to take a meeting, pass, or request more information.
+From company name to investment decision. Sieve scores startups across 7 dimensions so you know who's worth a meeting.
+
+An [MCP](https://modelcontextprotocol.io) server that brings AI-powered startup due diligence into Claude, Cursor, Windsurf, and any MCP-compatible assistant. Screen any startup, get a quantified Sieve Score (0-140), and a clear Take Meeting / Pass recommendation.
 
 ## Quick Start
 
