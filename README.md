@@ -114,3 +114,5 @@ sieve-mcp http
 ## License
 
 MIT
+
+<!-- mcp-name: io.github.lmwharton/sieve-mcp -->
