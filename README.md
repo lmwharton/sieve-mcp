@@ -13,14 +13,29 @@
 
 Most VCs screen 50+ deals a month. Most of those are obvious passes — but you still spend 2-3 hours per deal on basic diligence before you know that. Sieve does that work in 5 minutes.
 
-| What you get | How it works |
+### What You Get
+
+| Capability | Details |
 |---|---|
-| **Sieve Score (0-140)** | Quantified score across 7 IMPACT-X dimensions — not a vibe check, a structured assessment |
-| **Take Meeting / Pass / Need More Info** | Clear recommendation backed by evidence, not gut feel |
-| **Evidence-typed findings** | Every finding tagged as Documented, Discovered, Inferred, or Missing — you know exactly what's verified |
-| **Real-time deal chat** | Ask follow-up questions, challenge findings, explore scenarios |
-| **Sector-aware analysis** | Adapts benchmarks for fintech, healthtech, deeptech, climate, SaaS, consumer |
-| **Stage-calibrated** | Different expectations for pre-seed vs seed vs Series A |
+| **Investment Memo** | Full analyst-grade memo with executive summary, key strengths, critical concerns, and actionable recommendation — not a ChatGPT summary |
+| **Deal Scoring (0-140)** | Quantified Sieve Score across 7 IMPACT-X dimensions — structured, repeatable, comparable across your portfolio |
+| **Red Flag Detection** | Automatically surfaces deal-breakers: founder risk, market timing issues, unsustainable unit economics, missing traction, competitive threats |
+| **Evidence Verification** | Every finding tagged as Documented, Discovered, Inferred, or Missing — cross-references pitch deck claims against real-world evidence |
+| **Competitive Landscape** | Maps competitors, identifies moat strength, evaluates defensibility and switching costs |
+| **Financial Model Assessment** | Evaluates unit economics, pricing power, revenue model viability, and path to profitability |
+| **Market Sizing** | TAM/SAM/SOM analysis with timing assessment — is the market ready? |
+| **Team Evaluation** | Founder-market fit, team completeness, domain expertise, execution track record |
+| **Traction Analysis** | Growth metrics, customer validation, revenue signals, engagement patterns |
+| **Real-time Deal Chat** | Ask follow-up questions, challenge findings, explore what-if scenarios, dig into any dimension |
+| **Sector-Aware Analysis** | Adapts benchmarks for fintech, healthtech, deeptech, climate, SaaS, consumer, and more |
+| **Stage-Calibrated** | Different expectations for pre-seed vs seed vs Series A — doesn't penalize early-stage for missing late-stage metrics |
+
+### What Makes Sieve Different
+
+- **Not a wrapper around ChatGPT.** Sieve runs a structured multi-agent analysis pipeline with real-time web research, evidence verification, and domain-specific benchmarks.
+- **We tell you what we don't know.** Every finding is evidence-typed (Documented / Discovered / Inferred / Missing) so you see exactly what's verified and where the gaps are.
+- **Repeatable framework.** The same IMPACT-X methodology every time, so you can compare deals apples-to-apples across your portfolio.
+- **Built by VCs.** Not a generic AI tool adapted for investing — purpose-built for the way investors actually evaluate deals.
 
 ### IMPACT-X Framework
 
@@ -118,22 +133,47 @@ Just talk to your AI assistant naturally:
 **2. Check progress** (analysis takes 2-5 minutes)
 > "What's the status of that Sieve analysis?"
 
-**3. Get the investment memo**
-> "Show me the full Sieve results"
+**3. Get the full investment memo**
+> "Show me the Sieve results for Acme Corp"
 
-**4. Dig deeper**
-> "What are the key concerns? How strong is their competitive moat?"
+**4. Explore the deal**
+> "What are the red flags? Anything that should kill this deal?"
+>
+> "How strong is their competitive moat? Who are the main competitors?"
+>
+> "Walk me through their unit economics — is this business model viable?"
+>
+> "How does the founding team stack up? Any gaps?"
+>
+> "What's the market timing like? Is this too early or too late?"
+>
+> "Compare this deal to the last three I screened"
 
 **5. Check your usage**
 > "How many Sieve screens do I have left this month?"
 
-### Pro tip: Upload a pitch deck
+### Pro tip: Upload a pitch deck for deeper analysis
 
-For the most accurate analysis, paste pitch deck text or founder meeting notes:
+Paste pitch deck text or founder meeting notes for maximum accuracy:
 
 > "Screen Acme Corp — here's their pitch deck text: [paste]. Also check acme.com"
 
-Sieve cross-references pitch deck claims against discovered evidence, so you know what's real and what's aspirational.
+Sieve cross-references every pitch deck claim against real-world evidence. When a founder says "fastest-growing in the category," Sieve checks if that's actually true.
+
+### More things you can ask
+
+| Use case | Example prompt |
+|---|---|
+| **Quick pass/take meeting** | "Screen this company and give me the bottom line" |
+| **Investment memo for IC** | "Generate a full investment memo I can present to my partners" |
+| **Red flag check** | "What are the deal-breakers for this startup?" |
+| **Competitive analysis** | "Who competes with this company and how defensible are they?" |
+| **Financial viability** | "Does their business model make sense? What are the unit economics?" |
+| **Team assessment** | "Evaluate the founding team — any gaps or concerns?" |
+| **Market validation** | "Is the market real? What's the TAM and timing?" |
+| **Batch screening** | "Screen these 5 startups and rank them by Sieve Score" |
+| **Follow-up prep** | "Based on this analysis, what questions should I ask the founders?" |
+| **Portfolio comparison** | "How does this deal compare to others I've screened?" |
 
 ## Who Uses Sieve
 
