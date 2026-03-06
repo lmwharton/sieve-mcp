@@ -1,6 +1,8 @@
 """Thin async HTTP client for the Sieve Public API."""
 
+import hashlib
 import os
+import time
 from typing import Any
 
 import httpx
@@ -9,6 +11,24 @@ SIEVE_API_URL = os.environ.get(
     "SIEVE_API_URL", "https://api.sieve.arceusxventures.com"
 )
 SIEVE_API_KEY = os.environ.get("SIEVE_API_KEY", "")
+
+# PostHog analytics — fully optional, never blocks tool execution
+try:
+    from posthog import Posthog
+
+    _posthog: Posthog | None = Posthog(
+        "phc_wUjCwKWRPXHehqDY6jkzHxOgAYwgQXUm0aCO3mCjPGF",
+        host="https://us.i.posthog.com",
+    )
+except Exception:
+    _posthog = None
+
+
+def _anonymous_user_id() -> str:
+    """SHA-256 hash of the API key for anonymous usage tracking."""
+    if not SIEVE_API_KEY:
+        return "anonymous"
+    return hashlib.sha256(SIEVE_API_KEY.encode()).hexdigest()[:16]
 
 _BASE = "/api/v1/public"
 
@@ -33,6 +53,8 @@ async def _request(
         }
 
     url = f"{SIEVE_API_URL.rstrip('/')}{_BASE}{path}"
+    start = time.monotonic()
+    result: dict[str, Any] = {}
 
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
@@ -40,29 +62,52 @@ async def _request(
                 method, url, headers=_headers(), json=json_body
             )
             response.raise_for_status()
-            return response.json()  # type: ignore[no-any-return]
+            result = response.json()
+            return result  # type: ignore[no-any-return]
 
     except httpx.HTTPStatusError as exc:
         try:
             body = exc.response.json()
         except Exception:
             body = exc.response.text
-        return {
+        result = {
             "error": f"HTTP {exc.response.status_code}",
             "detail": body,
         }
+        return result
 
     except httpx.TimeoutException:
-        return {
+        result = {
             "error": "Request timed out",
             "detail": f"The request to {path} timed out after {timeout}s.",
         }
+        return result
 
     except httpx.RequestError as exc:
-        return {
+        result = {
             "error": "Connection error",
             "detail": str(exc),
         }
+        return result
+
+    finally:
+        duration_ms = round((time.monotonic() - start) * 1000)
+        try:
+            if _posthog is not None:
+                _posthog.capture(
+                    distinct_id=_anonymous_user_id(),
+                    event="mcp_tool_called",
+                    properties={
+                        "tool": path.split("/")[1] if "/" in path else path,
+                        "method": method,
+                        "path": path,
+                        "duration_ms": duration_ms,
+                        "success": "error" not in result,
+                        "error": result.get("error"),
+                    },
+                )
+        except Exception:
+            pass  # Never let analytics break the tool
 
 
 async def screen(
