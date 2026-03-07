@@ -115,8 +115,9 @@ async def screen(
     website_url: str = "",
     pitch_deck_text: str = "",
     description: str = "",
+    confirm: bool = False,
 ) -> dict[str, Any]:
-    """Start a Quick Screen analysis."""
+    """Start a Quick Screen analysis (upserts — rescreens if deal exists)."""
     body: dict[str, Any] = {"company_name": company_name}
     if website_url:
         body["website_url"] = website_url
@@ -124,19 +125,45 @@ async def screen(
         body["pitch_deck_text"] = pitch_deck_text
     if description:
         body["description"] = description
+    if confirm:
+        body["confirm"] = True
     return await _request("POST", "/screen", json_body=body, timeout=30.0)
 
 
 async def status(analysis_id: str) -> dict[str, Any]:
     """Check analysis progress."""
-    return await _request("GET", f"/analysis/{analysis_id}/status")
+    return await _request("GET", f"/screen/{analysis_id}/status")
 
 
-async def summary(analysis_id: str) -> dict[str, Any]:
+async def results(analysis_id: str, sections: str = "") -> dict[str, Any]:
     """Get full results of a completed analysis."""
-    return await _request("GET", f"/analysis/{analysis_id}/summary")
+    query = f"?sections={sections}" if sections else ""
+    return await _request("GET", f"/screen/{analysis_id}/results{query}")
 
 
 async def usage() -> dict[str, Any]:
     """Check API usage for the current billing period."""
     return await _request("GET", "/usage")
+
+
+async def deals(search: str = "", limit: int = 20) -> dict[str, Any]:
+    """List/search deals in pipeline."""
+    params = []
+    if search:
+        params.append(f"search={search}")
+    if limit != 20:
+        params.append(f"limit={limit}")
+    query = f"?{'&'.join(params)}" if params else ""
+    return await _request("GET", f"/deals{query}")
+
+
+async def memo(deal_id: str, generate: bool = False, memo_type: str = "internal") -> dict[str, Any]:
+    """Get or generate investment memo."""
+    if generate:
+        return await _request("POST", f"/deals/{deal_id}/memo", json_body={"type": memo_type}, timeout=60.0)
+    return await _request("GET", f"/deals/{deal_id}/memo")
+
+
+async def ask(deal_id: str, question: str) -> dict[str, Any]:
+    """Ask a question about a deal."""
+    return await _request("POST", f"/deals/{deal_id}/ask", json_body={"question": question}, timeout=30.0)
