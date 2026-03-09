@@ -69,10 +69,13 @@ async def sieve_screen(
     Takes 2-5 minutes to complete. Upserts — if the company was previously
     screened, returns the existing deal (set confirm=true to re-screen).
 
+    IMPORTANT: At least one of website_url or pitch_deck_text is required.
+    Sieve needs a website or pitch deck to produce accurate diligence.
+
     Args:
         company_name: Name of the startup to screen.
-        website_url: Company website URL (optional, improves accuracy).
-        pitch_deck_text: Extracted pitch deck text (optional, improves accuracy).
+        website_url: Company website URL (required if no pitch_deck_text).
+        pitch_deck_text: Extracted pitch deck text (required if no website_url).
         description: Brief company description (optional).
         confirm: Set to true to re-screen an existing deal.
     """
