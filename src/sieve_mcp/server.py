@@ -15,15 +15,16 @@ mcp = FastMCP(
         "It scores startups across 7 IMPACT-X dimensions (each 0-20, total 0-140) "
         "and returns a Take Meeting / Pass / Need More Info recommendation.\n\n"
         "WORKFLOW:\n"
-        "1. Call sieve_screen with company_name to start analysis\n"
-        "   - If existing deal found: ask user before rescreening (set confirm=true)\n"
-        "   - If new: screening starts automatically (2-5 minutes)\n"
-        "2. Poll sieve_status every 15-30 seconds until complete\n"
-        "3. Call sieve_results to get full diligence (or filter with sections param)\n"
-        "4. Optionally: sieve_memo to generate investment memo\n\n"
+        "1. Add documents: sieve_dataroom_add with company_name + file/text/url\n"
+        "   - Creates the deal automatically on first add\n"
+        "   - Add more documents with deal_id from the response\n"
+        "2. Screen: sieve_screen with deal_id to analyze everything in the data room\n"
+        "3. Poll: sieve_status every 15-30 seconds until complete\n"
+        "4. Results: sieve_results for full diligence, sieve_memo for investment memo\n\n"
         "DISCOVERY:\n"
-        "- Use sieve_deals to search/list deals in the pipeline\n"
-        "- Use sieve_usage to check account and quota\n\n"
+        "- sieve_deals to search/list deals in the pipeline\n"
+        "- sieve_dataroom to see what's in a deal's data room\n"
+        "- sieve_usage to check account and quota\n\n"
         "INTERPRETING RESULTS:\n"
         "- Sieve Score 100+: Exceptional, strong across most dimensions\n"
         "- Sieve Score 70-99: Promising, worth deeper investigation\n"
@@ -56,7 +57,8 @@ mcp = FastMCP(
     }
 )
 async def sieve_screen(
-    company_name: str,
+    company_name: str = "",
+    deal_id: str = "",
     website_url: str = "",
     pitch_deck_text: str = "",
     description: str = "",
@@ -66,21 +68,26 @@ async def sieve_screen(
 
     Analyzes the company across 7 dimensions (Innovators, Market, Product,
     Advantage, Commerce, Traction, X-Factor) and returns an analysis ID.
-    Takes 2-5 minutes to complete. Upserts — if the company was previously
+    Takes 2-5 minutes to complete. Upserts -- if the company was previously
     screened, returns the existing deal (set confirm=true to re-screen).
 
-    IMPORTANT: At least one of website_url or pitch_deck_text is required.
-    Sieve needs a website or pitch deck to produce accurate diligence.
+    Two ways to use:
+    - v3 (recommended): First add documents with sieve_dataroom_add, then
+      call sieve_screen(deal_id=...) to analyze everything in the data room.
+    - v2 (legacy): Call sieve_screen(company_name=..., website_url=...) directly.
+      At least one of website_url or pitch_deck_text is required in this mode.
 
     Args:
-        company_name: Name of the startup to screen.
-        website_url: Company website URL (required if no pitch_deck_text).
-        pitch_deck_text: Extracted pitch deck text (required if no website_url).
+        company_name: Name of the startup to screen (v2 flow, or to create new deal).
+        deal_id: Screen an existing deal by ID (v3 flow -- use after sieve_dataroom_add).
+        website_url: Company website URL (v2 flow).
+        pitch_deck_text: Extracted pitch deck text (v2 flow).
         description: Brief company description (optional).
         confirm: Set to true to re-screen an existing deal.
     """
     return await client.screen(
         company_name=company_name,
+        deal_id=deal_id,
         website_url=website_url,
         pitch_deck_text=pitch_deck_text,
         description=description,
@@ -184,6 +191,76 @@ async def sieve_memo(deal_id: str, generate: bool = False, memo_type: str = "int
         memo_type: 'internal' (IC-facing, full risks) or 'external' (founder-facing). Default: internal.
     """
     return await client.memo(deal_id=deal_id, generate=generate, memo_type=memo_type)
+
+
+@mcp.tool(
+    annotations={
+        "readOnlyHint": False,
+        "destructiveHint": False,
+        "openWorldHint": True,
+    }
+)
+async def sieve_dataroom_add(
+    title: str,
+    company_name: str = "",
+    deal_id: str = "",
+    website_url: str = "",
+    document_type: str = "other",
+    file_path: str = "",
+    text: str = "",
+    url: str = "",
+) -> dict:
+    """Add a document to a deal's data room. Creates the deal if needed.
+
+    This is the primary way to get documents into Sieve for screening.
+    Upload a pitch deck, financials, or any document -- then call sieve_screen
+    to analyze everything in the data room.
+
+    Provide company_name to create a new deal (or find existing),
+    or deal_id to add to an existing deal.
+
+    Provide exactly one content source: file_path (local file),
+    text (raw text/markdown), or url (fetch from URL).
+
+    Args:
+        title: Document title (e.g. "Pitch Deck Q1 2026").
+        company_name: Company name -- creates deal if new, finds existing if not.
+        deal_id: Add to an existing deal (from sieve_deals or previous sieve_dataroom_add).
+        website_url: Company website URL (used when creating a new deal).
+        document_type: Type: 'pitch_deck', 'financials', 'legal', or 'other'.
+        file_path: Path to a local file (PDF, DOCX, XLSX). The tool reads and uploads it.
+        text: Raw text or markdown content (alternative to file).
+        url: URL to fetch document from (alternative to file).
+    """
+    return await client.dataroom_add(
+        company_name=company_name,
+        deal_id=deal_id,
+        website_url=website_url,
+        title=title,
+        document_type=document_type,
+        file_path=file_path,
+        text=text,
+        url=url,
+    )
+
+
+@mcp.tool(
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "openWorldHint": True,
+    }
+)
+async def sieve_dataroom(deal_id: str) -> dict:
+    """List all documents in a deal's data room.
+
+    Shows what files and content have been uploaded for a deal,
+    along with their processing status.
+
+    Args:
+        deal_id: The deal ID (from sieve_deals or sieve_dataroom_add).
+    """
+    return await client.dataroom(deal_id)
 
 
 def main():

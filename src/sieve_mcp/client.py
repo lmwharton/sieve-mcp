@@ -111,14 +111,19 @@ async def _request(
 
 
 async def screen(
-    company_name: str,
+    company_name: str = "",
+    deal_id: str = "",
     website_url: str = "",
     pitch_deck_text: str = "",
     description: str = "",
     confirm: bool = False,
 ) -> dict[str, Any]:
     """Start a Quick Screen analysis (upserts — rescreens if deal exists)."""
-    body: dict[str, Any] = {"company_name": company_name}
+    body: dict[str, Any] = {}
+    if company_name:
+        body["company_name"] = company_name
+    if deal_id:
+        body["deal_id"] = deal_id
     if website_url:
         body["website_url"] = website_url
     if pitch_deck_text:
@@ -162,5 +167,50 @@ async def memo(deal_id: str, generate: bool = False, memo_type: str = "internal"
     if generate:
         return await _request("POST", f"/deals/{deal_id}/memo", json_body={"type": memo_type}, timeout=60.0)
     return await _request("GET", f"/deals/{deal_id}/memo")
+
+
+async def dataroom_add(
+    company_name: str = "",
+    deal_id: str = "",
+    website_url: str = "",
+    title: str = "Document",
+    document_type: str = "other",
+    file_path: str = "",
+    text: str = "",
+    url: str = "",
+) -> dict[str, Any]:
+    """Add a document to a deal's data room."""
+    body: dict[str, Any] = {"title": title, "document_type": document_type}
+    if company_name:
+        body["company_name"] = company_name
+    if deal_id:
+        body["deal_id"] = deal_id
+    if website_url:
+        body["website_url"] = website_url
+
+    if file_path:
+        import base64
+        import mimetypes
+
+        file_name = os.path.basename(file_path)
+        content_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+        with open(file_path, "rb") as f:
+            file_bytes = f.read()
+
+        body["file_base64"] = base64.b64encode(file_bytes).decode("ascii")
+        body["file_name"] = file_name
+        body["file_content_type"] = content_type
+    elif text:
+        body["text"] = text
+    elif url:
+        body["url"] = url
+
+    return await _request("POST", "/dataroom", json_body=body, timeout=60.0)
+
+
+async def dataroom(deal_id: str) -> dict[str, Any]:
+    """List data room contents for a deal."""
+    return await _request("GET", f"/dataroom/{deal_id}")
 
 
