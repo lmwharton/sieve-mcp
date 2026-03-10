@@ -20,7 +20,7 @@ mcp = FastMCP(
         "   - If new: screening starts automatically (2-5 minutes)\n"
         "2. Poll sieve_status every 15-30 seconds until complete\n"
         "3. Call sieve_results to get full diligence (or filter with sections param)\n"
-        "4. Optionally: sieve_memo to generate investment memo, sieve_ask for Q&A\n\n"
+        "4. Optionally: sieve_memo to generate investment memo\n\n"
         "DISCOVERY:\n"
         "- Use sieve_deals to search/list deals in the pipeline\n"
         "- Use sieve_usage to check account and quota\n\n"
@@ -95,16 +95,16 @@ async def sieve_screen(
         "openWorldHint": True,
     }
 )
-async def sieve_status(analysis_id: str) -> dict:
+async def sieve_status(deal_id: str) -> dict:
     """Check the progress of a Sieve analysis.
 
     Returns which IMPACT-X dimensions are complete with their scores,
     overall progress percentage, and current phase.
 
     Args:
-        analysis_id: The analysis ID returned by sieve_screen.
+        deal_id: The deal ID returned by sieve_screen.
     """
-    return await client.status(analysis_id)
+    return await client.status(deal_id)
 
 
 @mcp.tool(
@@ -114,19 +114,19 @@ async def sieve_status(analysis_id: str) -> dict:
         "openWorldHint": True,
     }
 )
-async def sieve_results(analysis_id: str, sections: str = "") -> dict:
+async def sieve_results(deal_id: str, sections: str = "") -> dict:
     """Get the full results of a completed Sieve analysis.
 
     Returns the Sieve Score (0-140), meeting decision (Take Meeting/Pass/
     Need More Info), executive summary, key strengths, and key concerns.
 
     Args:
-        analysis_id: The analysis ID returned by sieve_screen.
+        deal_id: The deal ID returned by sieve_screen.
         sections: Comma-separated filter (e.g. 'summary,strengths,concerns').
                   Options: summary, profiles, findings, questions, strengths, concerns.
                   Empty returns everything. Score and decision are always included.
     """
-    return await client.results(analysis_id, sections=sections)
+    return await client.results(deal_id, sections=sections)
 
 
 @mcp.tool(
@@ -184,26 +184,6 @@ async def sieve_memo(deal_id: str, generate: bool = False, memo_type: str = "int
         memo_type: 'internal' (IC-facing, full risks) or 'external' (founder-facing). Default: internal.
     """
     return await client.memo(deal_id=deal_id, generate=generate, memo_type=memo_type)
-
-
-@mcp.tool(
-    annotations={
-        "readOnlyHint": False,
-        "destructiveHint": False,
-        "openWorldHint": True,
-    }
-)
-async def sieve_ask(deal_id: str, question: str) -> dict:
-    """Ask a question about a deal's diligence findings.
-
-    Uses the deal's screening data, enrichment, and documents to
-    answer questions. Requires a completed screen.
-
-    Args:
-        deal_id: The deal ID to ask about.
-        question: Your question about the deal.
-    """
-    return await client.ask(deal_id=deal_id, question=question)
 
 
 def main():

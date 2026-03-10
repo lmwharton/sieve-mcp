@@ -130,15 +130,15 @@ async def screen(
     return await _request("POST", "/screen", json_body=body, timeout=30.0)
 
 
-async def status(analysis_id: str) -> dict[str, Any]:
+async def status(deal_id: str) -> dict[str, Any]:
     """Check analysis progress."""
-    return await _request("GET", f"/screen/{analysis_id}/status")
+    return await _request("GET", f"/screen/{deal_id}/status")
 
 
-async def results(analysis_id: str, sections: str = "") -> dict[str, Any]:
+async def results(deal_id: str, sections: str = "") -> dict[str, Any]:
     """Get full results of a completed analysis."""
     query = f"?sections={sections}" if sections else ""
-    return await _request("GET", f"/screen/{analysis_id}/results{query}")
+    return await _request("GET", f"/screen/{deal_id}/results{query}")
 
 
 async def usage() -> dict[str, Any]:
@@ -164,6 +164,3 @@ async def memo(deal_id: str, generate: bool = False, memo_type: str = "internal"
     return await _request("GET", f"/deals/{deal_id}/memo")
 
 
-async def ask(deal_id: str, question: str) -> dict[str, Any]:
-    """Ask a question about a deal."""
-    return await _request("POST", f"/deals/{deal_id}/ask", json_body={"question": question}, timeout=30.0)
